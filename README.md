@@ -1,6 +1,6 @@
 # aarambh-voice-studio
 
-> Sanskrit: Aarambh means beginning. Naad means sound.  
+> Sanskrit: Aarambh means beginning. Naad means sound.
 > A Rust-native AI audio studio for speech, music, singing, and full-song creation.
 
 ![Rust](https://img.shields.io/badge/Rust-1.80%2B-orange)
@@ -8,6 +8,7 @@
 ![Status](https://img.shields.io/badge/Status-Roadmap%20%2F%20Engineering%20Build-yellow)
 ![Release](https://img.shields.io/badge/Release-Source%20Only-lightgrey)
 ![License](https://img.shields.io/badge/License-Apache--2.0-blue)
+![Crates](https://img.shields.io/badge/Crates-24-informational)
 
 `aarambh-voice-studio` is a from-scratch speech, music, and singing engine written in Rust using Candle. It is designed as a sibling project to [`aarambh-ai`](https://github.com/AarambhDevHub/aarambh-ai), but instead of text tokens only, it builds a shared neural-audio-codec transformer core for audio generation and understanding.
 
@@ -18,36 +19,47 @@ The goal is not only text-to-speech. The goal is a full AI audio studio:
 - design a voice from a text description
 - control emotion and intensity
 - understand and generate background music
-- synthesize singing from lyrics and melody
+- synthesize singing from lyrics and melody, with an optional diffusion refinement pass
 - mix vocals with instrumental music
+- plan song structure (verse/chorus/bridge) before composing
 - compose a full song from lyrics and style prompts
+- align generation quality with GRPO/DPO, using its own evaluation metrics as rewards
+- learn new voices and styles online after deployment, without a full retrain
 
 This repository is a **source-first engineering project**. It does not ship pretrained checkpoints, voice packs, cloned voices, adapters, or generated voice assets by default.
 
-Inspired by: VALL-E · AudioLM · MusicGen · EnCodec · DAC · Bark · Stable Audio · LLaMA · DeepSeek · Mistral · aarambh-ai
+Inspired by: VALL-E · AudioLM · MusicGen · EnCodec · DAC · Mimi · Bark · Stable Audio · LLaMA · DeepSeek · Mistral · aarambh-ai
 
 ---
 
 ## Project Status
 
-`aarambh-voice-studio` is currently a roadmap-stage engineering build. The architecture and roadmap define the system, crate layout, training plan, and release policy. Implementation should follow the phase order in `ROADMAP_VOICE_STUDIO.md`.
+`aarambh-voice-studio` is currently a roadmap-stage engineering build. The architecture and roadmap define the system, crate layout, training plan, and release policy. Implementation should follow the phase order in `ROADMAP_VOICE_STUDIO_PART1.md` / `ROADMAP_VOICE_STUDIO_PART2.md`.
 
 | Area | Status |
 |---|---|
 | Rust-only architecture | Planned |
 | Candle tensor backend | Planned |
-| 20 library crates + 1 CLI binary | Planned |
-| Neural audio codec | Planned |
+| 23 library crates + 1 CLI binary | Planned |
+| Neural audio codec (12.5Hz, transformer bottleneck, semantic distillation) | Planned |
+| Text prep — G2P + normalisation | Planned |
 | TTS baseline | Planned |
 | Voice cloning | Planned |
+| Voice design | Planned |
 | Emotion control | Planned |
 | Music understanding | Planned |
 | Background music generation | Planned |
-| Singing synthesis | Planned |
-| Lyrics-to-song composer | Planned |
+| Singing synthesis (autoregressive + optional diffusion refinement) | Planned |
+| Structure planner + lyrics-to-song composer | Planned |
+| Full control layer | Planned |
 | Safety and watermarking | Planned |
-| Quantisation and evaluation | Planned |
-| HTTP inference server | Planned |
+| Quantisation | Planned |
+| Fine-tuning (LoRA/QLoRA/DoRA) | Planned |
+| Alignment (GRPO + DPO) | Planned |
+| Self-learning (online, confidence-gated) | Planned |
+| Evaluation harness + baseline comparison | Planned |
+| Speculative decoding | Planned |
+| HTTP inference server + multi-format output | Planned |
 
 Do not treat this repository as a finished production model until the relevant roadmap phases are implemented, tested, and tagged.
 
@@ -60,10 +72,12 @@ Most audio AI tools are either Python-first, single-purpose, or thin Rust wrappe
 1. **Rust-native** — model code, training loops, codec, inference, safety, and CLI are implemented in Rust.
 2. **Candle-based** — `candle-core`, `candle-nn`, and `candle-transformers` are used as the tensor and neural network foundation.
 3. **One shared foundation** — voice, music, and singing reuse the same neural audio codec and transformer primitives.
-4. **Three engines, one song composer** — Voice Engine, Music Engine, and Singing Engine work together to create full songs.
-5. **Full control layer** — voice, emotion, music, melody, mix, and consent fields are exposed as typed request parameters.
-6. **Source-first release policy** — no bundled pretrained weights, voice packs, cloned voices, or adapters.
-7. **Safety is part of the architecture** — consent gating and watermarking are planned as core system features, not later add-ons.
+4. **Three engines, one song composer** — Voice Engine, Music Engine, and Singing Engine work together, orchestrated by a structure planner that decides song shape before any audio is generated.
+5. **Full control layer** — voice, emotion, music, melody, mix, output format, and consent fields are exposed as typed request parameters.
+6. **Reward-aligned, not just loss-aligned** — GRPO and DPO refine quality using the project's own evaluation metrics as reward signals.
+7. **Learns after it ships** — a self-learning subsystem absorbs new voices, styles, and corrections online, with confidence-gated commits and anti-forgetting guarantees, instead of requiring a full fine-tune job for every small update.
+8. **Source-first release policy** — no bundled pretrained weights, voice packs, cloned voices, or adapters.
+9. **Safety is part of the architecture** — consent gating and watermarking are core system features, not later add-ons.
 
 ---
 
@@ -78,7 +92,7 @@ The Voice Engine handles spoken audio:
 - text-described voice design
 - speaker embedding control
 - emotion-controlled speech
-- streaming inference
+- streaming inference with speculative decoding
 
 Example target command:
 
@@ -112,14 +126,10 @@ cargo run --release -p aarambh-voice-studio -- music generate \
 
 ### 3. Singing Engine
 
-The Singing Engine turns lyrics, melody, timing, speaker identity, and emotion into sung vocals:
+The Singing Engine turns lyrics, melody, timing, speaker identity, and emotion into sung vocals, in two stages:
 
-- lyrics-to-phoneme alignment
-- melody and pitch conditioning
-- per-syllable duration control
-- a cappella singing synthesis
-- cloned singing voice support
-- emotional singing
+- **Stage A** — autoregressive lyrics-to-phoneme alignment, melody and pitch conditioning, per-syllable duration control, a cappella singing synthesis, cloned/emotional singing
+- **Stage B (optional)** — a diffusion/flow-matching refinement pass on top of Stage A for extra naturalness, feature-gated `diffusion-refine`
 
 Example target command:
 
@@ -129,6 +139,7 @@ cargo run --release -p aarambh-voice-studio -- sing \
   --melody melody.json \
   --voice designed:"bright expressive female" \
   --emotion joy:0.7 \
+  --refine \
   --out vocal.wav
 ```
 
@@ -136,7 +147,7 @@ cargo run --release -p aarambh-voice-studio -- sing \
 
 ## Full Song Creation
 
-The biggest idea in this project is that the three engines can work together.
+The biggest idea in this project is that the three engines can work together, with a structure planner deciding song shape first.
 
 ```text
 User input
@@ -148,14 +159,15 @@ User input
   └── mix controls
         ↓
 Song Composer
+  ├── plan structure (verse / chorus / bridge, detect repeats)
   ├── create or resolve melody
   ├── generate backing music with Music Engine
-  ├── generate sung vocals with Singing Engine
+  ├── generate sung vocals with Singing Engine (reusing audio for repeated choruses)
   ├── apply speaker and emotion controls from Voice Engine
   ├── mix vocals and music
   └── watermark final audio
         ↓
-Finished song WAV/audio file
+Finished song, in your chosen output format
 ```
 
 Example target command:
@@ -167,6 +179,26 @@ cargo run --release -p aarambh-voice-studio -- compose \
   --voice designed:"clear young male, energetic" \
   --emotion excitement:0.8 \
   --out finished_song.wav
+```
+
+---
+
+## Alignment and Self-Learning
+
+Two subsystems make quality a moving target the project actively optimizes against, rather than something fixed at training time:
+
+**Alignment (`aarambh-voice-align`)** — GRPO and DPO training, using the same metrics the evaluation harness already computes (WER, speaker similarity, emotion accuracy, music tag agreement, MOS proxy) as reward signals. No separate reward model to train from scratch.
+
+```bash
+cargo run --release -p aarambh-voice-studio -- align \
+  --engine tts --method dpo --scale small --out aligned.safetensors
+```
+
+**Self-learning (`aarambh-voice-selflearn`)** — online, confidence-gated adaptation for new voices and styles. Every update is staged, scored against the evaluation harness, and only committed if it doesn't regress quality — with gradient orthogonalization so learning a new voice never degrades one already known. Full design in `SELF_LEARNING_VOICE_STUDIO.md`.
+
+```bash
+cargo run --release -p aarambh-voice-studio -- learn \
+  --sample new_voice.wav --identity-hint "warm, mid-30s"
 ```
 
 ---
@@ -183,7 +215,9 @@ pub struct NaadRequest {
     pub singing: Option<SingingSpec>,
     pub background_music: Option<MusicSpec>,
     pub mix: MixSpec,
+    pub output_format: AudioOutputFormat,
     pub consent_token: Option<ConsentToken>,
+    pub learn_from_this: bool,
 }
 ```
 
@@ -197,22 +231,36 @@ This is the core product idea: users should not be locked behind hidden presets.
 - instruments and mood
 - vocal gain and music gain
 - loudness target
+- output audio format
 - consent metadata for cloning
+- whether this request should feed the self-learning system
 - safety and watermarking behavior
+
+---
+
+## Audio Output Formats
+
+| Format | Use case | Default? |
+|---|---|---|
+| WAV (PCM16/24/32f) | Lossless, universal compatibility, CLI default | **Yes, for CLI** |
+| FLAC | Lossless, smaller than WAV | Available |
+| Opus | Streaming server responses, lowest bandwidth | **Yes, for `serve`** |
+| MP3 | Legacy compatibility | Off by default, behind the `mp3` cargo feature (LAME licensing) |
 
 ---
 
 ## Architecture Overview
 
 ```text
-                    ┌───────────────────────────┐
-                    │   Full Control Layer       │
-                    │   NaadRequest API          │
-                    └─────────────┬─────────────┘
-                                  │
-                    ┌─────────────┴─────────────┐
-                    │   Song Composer            │
-                    └───┬───────────┬───────────┬─┘
+                    ┌────────────────────────────┐
+                    │     Full Control Layer       │
+                    │     NaadRequest API           │
+                    └──────────────┬──────────────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │   Song Composer                │
+                    │   (structure planner first)     │
+                    └───┬───────────┬───────────┬──┘
                         │           │           │
                  ┌──────┴───┐ ┌─────┴────┐ ┌────┴──────┐
                  │  Voice    │ │  Music   │ │  Singing  │
@@ -220,10 +268,12 @@ This is the core product idea: users should not be locked behind hidden presets.
                  └──────┬────┘ └────┬─────┘ └────┬──────┘
                         └───────────┴─────────────┘
                                     │
-                    ┌───────────────┴───────────────┐
-                    │ Shared Neural Audio Foundation │
-                    │ RVQ codec + Transformer core   │
-                    └────────────────────────────────┘
+                    ┌───────────────┴────────────────┐
+                    │  Shared Neural Audio Foundation    │
+                    │  12.5Hz codec + Transformer core    │
+                    │  + Alignment (GRPO/DPO)               │
+                    │  + Self-Learning                       │
+                    └──────────────────────────────────────┘
 ```
 
 ---
@@ -234,34 +284,40 @@ This is the core product idea: users should not be locked behind hidden presets.
 aarambh-voice-studio/
 ├── Cargo.toml
 ├── README.md
-├── ARCHITECTURE_VOICE_STUDIO.md
-├── ROADMAP_VOICE_STUDIO.md
+├── ARCHITECTURE_VOICE_STUDIO_PART1.md
+├── ARCHITECTURE_VOICE_STUDIO_PART2.md
+├── SELF_LEARNING_VOICE_STUDIO.md
+├── ROADMAP_VOICE_STUDIO_PART1.md
+├── ROADMAP_VOICE_STUDIO_PART2.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── CODE_OF_CONDUCT.md
 │
 ├── crates/
 │   ├── aarambh-voice-core/          # Configs, request/response types, errors
-│   ├── aarambh-voice-codec/         # Neural audio codec, RVQ tokens, decode
+│   ├── aarambh-voice-codec/         # Neural audio codec, 12.5Hz, semantic distillation
 │   ├── aarambh-voice-data/          # Dataset loaders and preprocessing
+│   ├── aarambh-voice-textprep/      # G2P + text normalisation
 │   ├── aarambh-voice-nn/            # Transformer blocks and conditioning
 │   ├── aarambh-voice-kernel/        # CPU SIMD, CUDA prep, STFT kernels
-│   ├── aarambh-voice-model/         # Model definitions per engine
+│   ├── aarambh-voice-model/         # Model definitions per engine + diffusion refinement head
 │   ├── aarambh-voice-weights/       # SafeTensors save/load
 │   ├── aarambh-voice-train/         # Training loops
 │   ├── aarambh-voice-quant/         # INT8, INT4, GGUF-style quantisation
 │   ├── aarambh-voice-finetune/      # LoRA, QLoRA, DoRA
+│   ├── aarambh-voice-align/         # GRPO + DPO alignment
+│   ├── aarambh-voice-selflearn/     # Online self-learning, anti-forgetting
 │   ├── aarambh-voice-speaker/       # Voice cloning and voice design
 │   ├── aarambh-voice-emotion/       # Emotion embeddings and intensity control
 │   ├── aarambh-voice-music/         # Music understanding and generation
-│   ├── aarambh-voice-sing/          # Singing synthesis
+│   ├── aarambh-voice-sing/          # Singing synthesis (AR + diffusion refinement)
 │   ├── aarambh-voice-mix/           # Vocal + instrumental mixing
-│   ├── aarambh-voice-compose/       # Lyrics-to-song composer
+│   ├── aarambh-voice-compose/       # Structure planner + lyrics-to-song composer
 │   ├── aarambh-voice-safety/        # Consent, watermarking, guardrails
-│   ├── aarambh-voice-eval/          # WER, speaker sim, music metrics, MOS proxy
+│   ├── aarambh-voice-eval/          # WER, speaker sim, music metrics, MOS proxy, baseline comparison
 │   ├── aarambh-voice-control/       # Unified request API
-│   ├── aarambh-voice-inference/     # KV cache and streaming inference
-│   └── aarambh-voice-serve/         # HTTP server
+│   ├── aarambh-voice-inference/     # KV cache, streaming inference, speculative decoding
+│   └── aarambh-voice-serve/         # HTTP server, multi-format output
 │
 └── aarambh-voice-studio/            # CLI binary
     └── src/cmd/
@@ -273,23 +329,27 @@ aarambh-voice-studio/
         ├── compose.rs
         ├── train.rs
         ├── finetune.rs
+        ├── align.rs
+        ├── learn.rs
         ├── quantise.rs
         ├── eval.rs
         └── serve.rs
 ```
 
+23 library crates + 1 CLI binary = 24 crates total.
+
 ---
 
 ## Model Scales
 
-| Scale | Approx Params | d_model | Layers | Heads | Target Use |
-|---|---:|---:|---:|---:|---|
-| Tiny | ~20M | 320 | 6 | 5 | i3 smoke tests and unit tests |
-| Small | ~110M | 512 | 10 | 8 | Kaggle T4 first real checkpoint |
-| Medium | ~340M | 768 | 16 | 12 | Production-quality voice target |
-| Large | ~900M | 1024 | 24 | 16 | Best-quality research target |
+| Scale | d_model | Layers | Heads | KV Heads | Approx Params (transformer core) | Target Use |
+|---|---:|---:|---:|---:|---:|---|
+| Tiny   | 256  | 6  | 8  | 2 | ~10M  | i3 smoke tests and unit tests |
+| Small  | 512  | 12 | 8  | 4 | ~55M  | Kaggle T4 first real checkpoint |
+| Medium | 768  | 18 | 12 | 4 | ~170M | Production-quality voice target |
+| Large  | 1024 | 24 | 16 | 4 | ~450M | Best-quality research target |
 
-Every subsystem uses the same scale pattern with `AudioDomain::Speech`, `AudioDomain::Music`, or `AudioDomain::Singing`.
+Every subsystem uses the same scale pattern with `AudioDomain::Speech`, `AudioDomain::Music`, or `AudioDomain::Singing`. See `ARCHITECTURE_VOICE_STUDIO_PART1.md` §5 for full detail, and §27 (Part 2) for memory estimates per scale.
 
 ---
 
@@ -301,7 +361,7 @@ Every subsystem uses the same scale pattern with `AudioDomain::Speech`, `AudioDo
 - Git
 - Linux recommended for development
 - No GPU required for Phase 0 and CPU smoke tests
-- Kaggle GPU or CUDA-capable machine recommended for serious codec, music, and singing training
+- Kaggle GPU or CUDA-capable machine recommended for codec, music, singing, and alignment training
 
 ### Clone
 
@@ -330,45 +390,50 @@ cargo run --release -p aarambh-voice-studio -- --help
 
 ## Phase Roadmap
 
+28 phases total. Full detail, tasks, and tests for each phase are in `ROADMAP_VOICE_STUDIO_PART1.md` (Phases 0–13) and `ROADMAP_VOICE_STUDIO_PART2.md` (Phases 14–27).
+
 | Phase | Goal | Hardware |
 |---:|---|---|
 | 0 | Workspace + core types | i3 |
-| 1 | Neural audio codec | i3 + Kaggle |
-| 2 | Data pipeline + auto-labelling | i3 |
-| 3 | NN primitives + conditioning injection | i3 |
-| 4 | CPU SIMD kernels + CUDA prep | i3 + Kaggle prep |
-| 5 | TTS baseline — Tiny trains | i3 + Kaggle |
-| 6 | Inference engine + CLI | i3 |
-| 7 | Voice cloning | Kaggle |
-| 8 | Text-described voice design | i3 + Kaggle |
-| 9 | Emotion control | i3 + Kaggle |
-| 10 | Music understanding | i3 + Kaggle |
-| 11 | Background music generation | Kaggle |
-| 12 | Singing synthesis | Kaggle |
-| 13 | Singing + music mixing | i3 + Kaggle |
-| 14 | Cloning + emotion for singing | Kaggle |
-| 15 | Lyrics-to-song composer | i3 + Kaggle |
-| 16 | Full control layer | i3 |
-| 17 | Safety and watermarking | i3 |
-| 18 | Quantisation stack | i3 + Kaggle |
-| 19 | Fine-tuning refinement | Kaggle |
-| 20 | Evaluation harness | i3 + Kaggle |
-| 21 | GPU scale-up | Kaggle |
-| 22 | Inference server | i3 |
-| 23 | Production release v1.0 | all |
-
-See `ROADMAP_VOICE_STUDIO.md` for the full checklist.
+| 1 | Neural audio codec (12.5Hz, transformer bottleneck) | i3 + Kaggle |
+| 2 | Text prep — G2P + normalisation | i3 |
+| 3 | Data pipeline + auto-labelling | i3 |
+| 4 | NN primitives + conditioning injection | i3 |
+| 5 | CPU SIMD kernels + CUDA prep | i3 + Kaggle prep |
+| 6 | TTS baseline — Tiny trains | i3 + Kaggle |
+| 7 | Inference engine + CLI | i3 |
+| 8 | Voice cloning | Kaggle |
+| 9 | Text-described voice design | i3 + Kaggle |
+| 10 | Emotion control | i3 + Kaggle |
+| 11 | Music understanding | i3 + Kaggle |
+| 12 | Background music generation | Kaggle |
+| 13 | Singing synthesis Stage A (autoregressive) | Kaggle |
+| 14 | Singing synthesis Stage B (diffusion refinement) | Kaggle |
+| 15 | Singing + music mixing | i3 + Kaggle |
+| 16 | Cloning + emotion for singing | Kaggle |
+| 17 | Structure planner + song composer | i3 + Kaggle |
+| 18 | Full control layer | i3 |
+| 19 | Safety and watermarking | i3 |
+| 20 | Quantisation stack | i3 + Kaggle |
+| 21 | Fine-tuning refinement (LoRA/QLoRA/DoRA) | Kaggle |
+| 22 | Alignment — GRPO + DPO | Kaggle |
+| 23 | Self-learning | i3 |
+| 24 | Evaluation harness + baseline comparison | i3 + Kaggle |
+| 25 | GPU scale-up + speculative decoding | Kaggle |
+| 26 | Inference server + audio output formats | i3 |
+| 27 | Production release v1.0 | all |
 
 ---
 
 ## Safety Policy Summary
 
-Voice generation and singing-voice cloning can be misused. This project therefore treats safety as a core engineering requirement.
+Voice generation, singing-voice cloning, and self-learning from user-submitted samples can all be misused. This project therefore treats safety as a core engineering requirement.
 
 Planned safety rules:
 
 - non-preset voice cloning requires a consent token
 - generated audio is watermarked
+- self-learning updates require the same consent gating as any other cloning-adjacent path
 - reference audio is never stored in audit logs, only hashes
 - text and lyrics pass through guardrails
 - generated content must not impersonate people without permission
@@ -386,7 +451,7 @@ This project follows the same source-first discipline as `aarambh-ai`:
 - Crates are not published to crates.io until stable.
 - `publish = false` should be used during early phases.
 - No pretrained checkpoints are included.
-- No model weights, voice packs, adapters, cloned voices, or generated datasets are attached to releases.
+- No model weights, voice packs, adapters, cloned voices, self-learned adapter banks, or generated datasets are attached to releases.
 - Example configs are for local smoke tests and user-created checkpoints.
 - CUDA is optional; default CPU builds must remain valid.
 
@@ -402,11 +467,11 @@ Good first areas:
 - Phase 0 workspace scaffolding
 - type definitions in `aarambh-voice-core`
 - tests for config serialization
-- WAV read/write utilities
+- WAV/FLAC/Opus read/write utilities
 - safe DSP helpers
 - CLI help text
 
-Avoid opening large modelling PRs without an issue first.
+Avoid opening large modelling, alignment, or self-learning PRs without an issue first.
 
 ---
 
@@ -419,4 +484,3 @@ Apache License 2.0. See `LICENSE`.
 ## Author
 
 Created by **Darshan Vichhi** under **AarambhDevHub**.
-
