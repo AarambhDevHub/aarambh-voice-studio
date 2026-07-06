@@ -442,6 +442,13 @@ requiring a full `-finetune` job for every new voice. Called from
 | MOS proxy | Overall naturalness | Learned quality predictor trained on public MOS-labelled datasets |
 | **Baseline delta** *(NEW)* | Are you actually closing the gap? | Same prompts run against fixed open-source reference checkpoints (Voice Engine: compare against open TTS baselines from the current leaderboard generation; Composer/Music Engine: compare against the current open-source full-song-generation reference) — re-run every release, tracked over time, not just measured once |
 
+| Engine | Baseline Reference | Source |
+|---|---|---|
+| TTS / Voice | VITS / Coqui TTS (current open leaderboard) | HuggingFace (converted to SafeTensors) |
+| Cloning | Your own Phase 8 Tiny/Small checkpoint | Self-comparison (regression guard) |
+| Music Gen | MusicGen-small / AudioLDM | HuggingFace (converted to SafeTensors) |
+| Singing | DiffSinger / SVC (open reference) | HuggingFace (converted to SafeTensors) |
+
 `Scorecard::to_markdown()` / `to_json()` produce the release report used
 in Phase 23-equivalent (see Roadmap).
 

@@ -260,6 +260,12 @@ Phase 2 until the freeze criterion (below) passes.
 
 **`aarambh-voice-codec`:**
 ```
+[ ] src/backbones/dac.rs — Load DAC/EnCodec SafeTensors
+    via `candle-transformers`, wrap them in the AudioCodec trait.
+    This is the default implementation used by all downstream engines.
+[ ] src/trait.rs — AudioCodec trait { encode(), decode(),
+    frame_rate() } implemented by both the loaded backbone AND the custom
+    codec (when ready).
 [ ] src/encoder.rs — strided conv encoder, downsample to 12.5Hz
 [ ] src/bottleneck.rs — transformer bottleneck (2-4 layers), encoder + decoder side
 [ ] src/rvq.rs — split RVQ: RVQ-1 (2048 codes, semantic) + RVQ-2..8
@@ -275,21 +281,40 @@ Phase 2 until the freeze criterion (below) passes.
 ```
 
 ### Tests
+**Default Path (Guaranteed, must pass immediately):**
 ```
-[ ] Codec round-trips a known waveform within a fixed STOI tolerance
+[ ] Loaded backbone (DAC/EnCodec) passes the spectral-distance sanity test
+    on a 1-second sine wave.
+[ ] Loaded backbone outputs the correct frame rate (12.5 Hz).
+[ ] Loaded backbone's encode/decode round-trip has STOI ≥ 0.90 on a held-out
+    speech clip (this is the guaranteed baseline).
+```
+
+**Stretch Goal (Custom Rust/Candle codec, optional):**
+```
+[ ] Custom codec round-trips a known waveform within a fixed STOI tolerance.
 [ ] RVQ-1 embedding cosine similarity to frozen SSL teacher exceeds 0.85
-    on held-out audio
+    on held-out audio (custom codec only).
 [ ] Discriminator loss decreases monotonically over the first 10k steps
     on a smoke-test subset (regression guard against a broken adversarial
-    setup)
-[ ] Frame rate is exactly 12.5Hz for all input lengths tested
+    setup—custom codec only).
+[ ] Custom codec frame rate is exactly 12.5Hz for all input lengths tested.
 ```
 
 ### Milestone
-On held-out LJSpeech-subset audio: STOI ≥ 0.90, ASR-roundtrip WER within
-2 points of uncompressed baseline, semantic cosine similarity ≥ 0.85.
+
+**Primary Milestone (Guaranteed — completes Phase 1):**
+The loaded backbone (DAC/EnCodec) passes the spectral-distance sanity test,
+the frame-rate test, and the STOI baseline test. 
 Tag `v0.1.0-codec-frozen` — **from this point forward,
 `aarambh-voice-codec` is read-only for the rest of the roadmap.**
+
+**Stretch Milestone (Optional, if custom codec converges):**
+On held-out LJSpeech-subset audio: STOI ≥ 0.90, ASR-roundtrip WER within
+2 points of uncompressed baseline, semantic cosine similarity ≥ 0.85.
+If this milestone is reached, the custom codec becomes the default via a
+config flag swap. If not, the project still ships with the loaded backbone.
+
 
 ---
 
@@ -681,8 +706,11 @@ and a training-time tag-agreement reward signal.
 ```
 [ ] src/generate/model.rs — MusicGenModel: TransformerCore conditioned on
     text-style prompt embedding
-[ ] src/generate/train.rs — L_music (ARCHITECTURE PART2 §12.2):
-    cross-entropy + tag-agreement term (every 500 steps)
+[ ] src/generate/train.rs — **Default path:** Load an existing open music-codec
+    backbone (e.g., MusicGen-small weights converted to SafeTensors) via 
+    `candle-transformers` and apply LoRA/QLoRA adaptation to it. 
+    From-scratch pretraining is a stretch goal only (flagged 
+    `--from-scratch`), per ARCHITECTURE PART2 §12.2's design philosophy.
 [ ] configs/music_medium.toml — matches PART2 §12.4 reference schedule
 ```
 

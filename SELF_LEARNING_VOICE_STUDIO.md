@@ -194,7 +194,22 @@ pub struct AdapterBank {
 impl AdapterBank {
     pub fn allocate(&mut self, target_modules: Vec<ModulePath>) -> AdapterId;
     pub fn update(&mut self, id: AdapterId, orthogonalized_gradient: &Gradient, lr: f32);
-    pub fn prune_lowest_confidence(&mut self, memory: &AssociativeMemory);
+    pub fn prune_lowest_confidence(&mut self, memory: &AssociativeMemory, cap: usize) {
+        // If memory usage exceeds cap (default 200MB), identify adapters with:
+        // 1. confidence < 0.5 
+        // 2. last_used > 30 days
+        // Remove lowest-confidence-first until memory < cap.
+        let mut candidates: Vec<_> = memory.entries()
+            .iter()
+            .filter(|e| e.confidence < 0.5 && e.last_used.elapsed() > Duration::days(30))
+            .collect();
+        candidates.sort_by_key(|e| (e.confidence * 1000.0) as i32);
+        for entry in candidates {
+            if self.memory_usage() < cap { break; }
+            self.deltas.remove(&entry.adapter_id);
+            memory.remove(entry.adapter_id);
+        }
+    }
 }
 ```
 
