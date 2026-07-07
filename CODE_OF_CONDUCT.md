@@ -4,7 +4,7 @@
 
 We as members, contributors, and leaders pledge to make participation in the `aarambh-voice-studio` community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
-We also pledge to build this project with respect for creators, speakers, singers, musicians, and people whose voices or likenesses could be affected by audio AI systems.
+We also pledge to build this project with respect for creators, speakers, singers, musicians, and people whose voices or likenesses could be affected by audio AI systems — including through the project's self-learning system, which can absorb a new voice from a single user-submitted sample.
 
 ---
 
@@ -29,6 +29,7 @@ Examples of unacceptable behavior:
 - publishing others' private information without explicit permission
 - uploading or requesting private voice recordings without consent
 - encouraging unauthorized voice cloning or impersonation
+- submitting a voice sample to the project's self-learning system without the speaker's consent
 - mocking contributors for skill level, accent, language, or background
 - other conduct which could reasonably be considered inappropriate
 
@@ -36,12 +37,14 @@ Examples of unacceptable behavior:
 
 ## Audio AI Safety Expectations
 
-Because this project deals with generated voices, singing, and music, contributors must follow additional safety expectations:
+Because this project deals with generated voices, singing, and music — and includes a self-learning system that can adapt to a new voice from a single sample — contributors must follow additional safety expectations:
 
 - Do not submit real-person voice samples unless you have clear rights and consent.
 - Do not submit cloned voices as examples.
-- Do not encourage bypassing consent checks.
+- Do not submit voice or style samples to the self-learning system on someone else's behalf without their consent.
+- Do not encourage bypassing consent checks, in cloning or in self-learning requests.
 - Do not encourage removing or weakening watermarking.
+- Do not encourage weakening or bypassing the self-learning confidence gate to force through an update.
 - Do not use issues or discussions to request impersonation of real people.
 - Do not publish private audio, private metadata, or personal recordings without permission.
 - Do not contribute datasets with unclear licenses.
@@ -78,7 +81,7 @@ It also applies when someone is officially representing `aarambh-voice-studio` i
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers through GitHub Issues.
 
-Sensitive reports, security issues, unauthorized voice cloning concerns, private audio leakage, or other safety-sensitive reports should use GitHub private vulnerability reporting or a private GitHub Security Advisory instead of a public issue.
+Sensitive reports, security issues, unauthorized voice cloning concerns, self-learning consent violations, private audio leakage, or other safety-sensitive reports should use GitHub private vulnerability reporting or a private GitHub Security Advisory instead of a public issue.
 
 All complaints will be reviewed and investigated promptly and fairly.
 
@@ -108,7 +111,7 @@ Community leaders will follow these Community Impact Guidelines when determining
 
 ### 4. Permanent Ban
 
-**Community Impact:** A pattern of violating community standards, harassment, aggression, doxxing, repeated unsafe behavior, or deliberate encouragement of harmful voice/audio misuse.
+**Community Impact:** A pattern of violating community standards, harassment, aggression, doxxing, repeated unsafe behavior, non-consensual voice submission to the self-learning system, or deliberate encouragement of harmful voice/audio misuse.
 
 **Consequence:** A permanent ban from public interaction with the community.
 
@@ -116,5 +119,4 @@ Community leaders will follow these Community Impact Guidelines when determining
 
 ## Attribution
 
-This Code of Conduct is adapted from the Contributor Covenant, version 2.1, with additional project-specific expectations for AI audio safety, consent, privacy, and generated voice misuse.
-
+This Code of Conduct is adapted from the Contributor Covenant, version 2.1, with additional project-specific expectations for AI audio safety, consent, privacy, self-learning data submission, and generated voice misuse.

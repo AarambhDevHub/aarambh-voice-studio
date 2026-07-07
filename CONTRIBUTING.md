@@ -2,7 +2,7 @@
 
 Thank you for taking the time to contribute. Every bug report, documentation improvement, test, benchmark, and pull request helps make `aarambh-voice-studio` stronger.
 
-This project is ambitious: it combines speech, voice cloning, music generation, singing synthesis, mixing, safety, and Rust-native AI training. Please keep changes focused, tested, and aligned with the roadmap.
+This project is ambitious: it combines speech, voice cloning, music generation, singing synthesis, mixing, structure planning, alignment, self-learning, safety, and Rust-native AI training. Please keep changes focused, tested, and aligned with the roadmap.
 
 ---
 
@@ -19,12 +19,13 @@ This project is ambitious: it combines speech, voice cloning, music generation, 
 9. Documentation Requirements
 10. Audio and Dataset Contributions
 11. Safety-Sensitive Contributions
-12. Working on Custom Kernels
-13. Pull Request Process
-14. Reporting Bugs
-15. Suggesting Features
-16. Crate Versioning
-17. Questions
+12. Alignment and Self-Learning Contributions
+13. Working on Custom Kernels
+14. Pull Request Process
+15. Reporting Bugs
+16. Suggesting Features
+17. Crate Versioning
+18. Questions
 
 ---
 
@@ -49,7 +50,7 @@ Useful contributions include:
 - write benchmarks
 - improve CLI help text
 - improve error messages
-- help with audio file handling
+- help with audio file handling (WAV, FLAC, Opus, MP3)
 - add safe DSP utilities
 - improve dataset validation
 - review pull requests
@@ -61,7 +62,7 @@ For larger features, open an issue first.
 
 ## Project Status
 
-`aarambh-voice-studio` is a roadmap-stage engineering project. The architecture and roadmap are intentionally detailed, but the implementation should proceed phase by phase.
+`aarambh-voice-studio` is a roadmap-stage engineering project, now at its final v1 scope: 28 phases across `ROADMAP_VOICE_STUDIO_PART1.md` and `ROADMAP_VOICE_STUDIO_PART2.md`. The architecture and roadmap are intentionally detailed, but the implementation should proceed phase by phase.
 
 Do not submit a PR that pretends an unfinished phase is complete. Mark work honestly as:
 
@@ -73,7 +74,7 @@ Do not submit a PR that pretends an unfinished phase is complete. Mark work hone
 - benchmarked
 - release-ready
 
-No pretrained checkpoints, voice packs, cloned voices, adapters, or generated assets should be committed to this repository.
+No pretrained checkpoints, voice packs, cloned voices, adapters, self-learned adapter banks, or generated assets should be committed to this repository.
 
 ---
 
@@ -85,7 +86,7 @@ No pretrained checkpoints, voice packs, cloned voices, adapters, or generated as
 - Git
 - `rust-analyzer` recommended
 - Linux recommended for development
-- Optional: CUDA/NVCC for later GPU work
+- Optional: CUDA/NVCC for later GPU work (Phase 25)
 
 ### Clone and build
 
@@ -112,30 +113,33 @@ aarambh-voice-studio/
 ├── Cargo.toml
 ├── crates/
 │   ├── aarambh-voice-core/          # Configs, request/response types, errors
-│   ├── aarambh-voice-codec/         # Neural audio codec and RVQ tokens
+│   ├── aarambh-voice-codec/         # Neural audio codec, 12.5Hz, RVQ, semantic distillation
 │   ├── aarambh-voice-data/          # Dataset loading and preprocessing
+│   ├── aarambh-voice-textprep/      # G2P and text normalisation
 │   ├── aarambh-voice-nn/            # Transformer primitives and conditioning
 │   ├── aarambh-voice-kernel/        # SIMD, CUDA prep, STFT kernels
-│   ├── aarambh-voice-model/         # Voice, music, and singing models
+│   ├── aarambh-voice-model/         # Voice, music, and singing models + diffusion refinement head
 │   ├── aarambh-voice-weights/       # SafeTensors and checkpoint I/O
 │   ├── aarambh-voice-train/         # Training loops
 │   ├── aarambh-voice-quant/         # Quantisation
 │   ├── aarambh-voice-finetune/      # LoRA, QLoRA, DoRA
+│   ├── aarambh-voice-align/         # GRPO and DPO alignment
+│   ├── aarambh-voice-selflearn/     # Online self-learning and anti-forgetting
 │   ├── aarambh-voice-speaker/       # Speaker encoder and voice design
 │   ├── aarambh-voice-emotion/       # Emotion controls
 │   ├── aarambh-voice-music/         # Music understanding and generation
 │   ├── aarambh-voice-sing/          # Singing synthesis
 │   ├── aarambh-voice-mix/           # Mixing and mastering
-│   ├── aarambh-voice-compose/       # Lyrics-to-song composer
+│   ├── aarambh-voice-compose/       # Structure planner + lyrics-to-song composer
 │   ├── aarambh-voice-safety/        # Consent, watermarking, guardrails
-│   ├── aarambh-voice-eval/          # Evaluation harness
+│   ├── aarambh-voice-eval/          # Evaluation harness + baseline comparison
 │   ├── aarambh-voice-control/       # Unified NaadRequest API
-│   ├── aarambh-voice-inference/     # KV cache and streaming inference
-│   └── aarambh-voice-serve/         # HTTP inference server
+│   ├── aarambh-voice-inference/     # KV cache, streaming inference, speculative decoding
+│   └── aarambh-voice-serve/         # HTTP inference server, multi-format output
 └── aarambh-voice-studio/            # CLI binary
 ```
 
-Each crate should stay focused. If you are working on emotion embeddings, you should not need to modify the music generator in the same PR.
+23 library crates + 1 CLI binary. Each crate should stay focused. If you are working on emotion embeddings, you should not need to modify the music generator or the self-learning crate in the same PR.
 
 ---
 
@@ -167,7 +171,7 @@ Branch naming conventions:
 
 ### 3. Make the smallest useful change
 
-Do not mix unrelated changes. A PR that adds `NaadRequest` validation should not also redesign the music model.
+Do not mix unrelated changes. A PR that adds `NaadRequest` validation should not also redesign the music model or the self-learning commit loop.
 
 ### 4. Reference the roadmap
 
@@ -202,6 +206,8 @@ feat(core): add AudioDomain enum
 fix(codec): validate token grid frame count
 docs(readme): explain three-engine architecture
 test(control): reject cloned voice without consent token
+test(selflearn): anti-forgetting regression across 50 speakers
+feat(align): wire eval metrics into GRPO reward adapter
 perf(kernel): reuse stft scratch buffers
 ```
 
@@ -242,6 +248,8 @@ Every pull request that changes behavior must include tests.
 - invalid request validation
 - deterministic output with fixed seeds
 - safety gates for cloning and watermarking
+- confidence-gate accept/reject behavior for self-learning updates
+- reward computation correctness for alignment (GRPO/DPO)
 
 ### Where to put tests
 
@@ -255,6 +263,7 @@ Every pull request that changes behavior must include tests.
 cargo test --workspace
 cargo test -p aarambh-voice-core
 cargo test -p aarambh-voice-control reject_cloning_without_consent
+cargo test -p aarambh-voice-selflearn anti_forgetting_regression
 ```
 
 ### Clippy
@@ -275,7 +284,7 @@ Public APIs need documentation.
 - Non-trivial APIs should include examples.
 - Request validation rules must be documented.
 - Unsafe code must explain invariants clearly.
-- Audio assumptions must be explicit: sample rate, channels, frame size, dtype, normalization.
+- Audio assumptions must be explicit: sample rate, channels, frame size, dtype, normalization, output format.
 
 Check docs locally:
 
@@ -287,7 +296,7 @@ RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
 
 ## Audio and Dataset Contributions
 
-Do not commit large audio files, copyrighted songs, personal voice recordings, voice packs, or cloned speaker samples.
+Do not commit large audio files, copyrighted songs, personal voice recordings, voice packs, cloned speaker samples, or self-learned adapter banks.
 
 Allowed examples:
 
@@ -310,7 +319,7 @@ Dataset loaders must:
 
 ## Safety-Sensitive Contributions
 
-Voice cloning, singing-voice cloning, watermarking, guardrails, and consent handling are safety-sensitive areas.
+Voice cloning, singing-voice cloning, watermarking, guardrails, consent handling, and self-learning from user-submitted samples are safety-sensitive areas.
 
 For these areas:
 
@@ -321,6 +330,7 @@ For these areas:
 - never log raw reference audio
 - never add example cloned voices without explicit permission
 - never weaken watermarking silently
+- never let a self-learning update commit without passing the confidence gate
 - document any safety tradeoff clearly
 
 Examples of required tests:
@@ -330,7 +340,19 @@ VoiceSpec::Cloned without consent_token => rejected
 Watermarked audio => detector returns true
 Unwatermarked audio => detector returns false
 Invalid lyrics/content => clear validation error
+Self-learning update that regresses eval score => rejected, live weights unchanged
 ```
+
+---
+
+## Alignment and Self-Learning Contributions
+
+`aarambh-voice-align` (GRPO/DPO) and `aarambh-voice-selflearn` (online adaptation) are newer, higher-risk areas of the codebase. Additional expectations:
+
+- Reward weightings in `aarambh-voice-align` must be documented and justified against `ARCHITECTURE_VOICE_STUDIO_PART2.md` §21, not tuned silently.
+- Any change to the gradient orthogonalization logic in `aarambh-voice-selflearn` requires the anti-forgetting regression test (see `SELF_LEARNING_VOICE_STUDIO.md` §15) to pass before merge.
+- Do not relax the confidence-gate tolerance without an issue discussion — this is the mechanism that keeps online learning safe to run unattended.
+- GRPO/DPO changes should report before/after scores on the guardrail metrics (WER, speaker similarity), not just the optimized reward, so reviewers can see whether the change traded one metric for another.
 
 ---
 
@@ -387,6 +409,7 @@ All must pass.
 - Address review comments directly.
 - Rebase on `main`; avoid merge commits in feature branches.
 - The maintainer may squash-merge.
+- PRs touching `aarambh-voice-align` or `aarambh-voice-selflearn` require an additional safety-focused review pass, per the section above.
 
 ---
 
@@ -402,7 +425,7 @@ Open an issue using the bug report template. Include:
 6. OS and CPU/GPU details.
 7. Active feature flags.
 8. The exact crate or CLI command involved.
-9. For audio bugs: sample rate, channel count, duration, and input format.
+9. For audio bugs: sample rate, channel count, duration, input format, and output format requested.
 
 Do not attach private voice recordings or copyrighted music to public issues.
 
@@ -419,7 +442,7 @@ Open a feature request issue. Include:
 5. Alternatives considered.
 6. Related roadmap phase.
 
-Feature requests that only say “add this model” without explaining the use case may be closed or asked for more detail.
+Feature requests that only say "add this model" without explaining the use case may be closed or asked for more detail.
 
 ---
 
@@ -435,8 +458,9 @@ During early roadmap phases, tags may use phase milestones such as:
 
 ```text
 v0.1.0-phase0
-v0.1.0-phase1
-v0.1.0-phase5
+v0.1.0-codec-frozen
+v0.1.0-selflearn
+v0.1.0-phase22
 ```
 
 All sub-crates should share the same workspace version.
@@ -445,5 +469,4 @@ All sub-crates should share the same workspace version.
 
 ## Questions
 
-If you are unsure whether a bug, feature, model idea, dataset, or safety change fits the project, open an issue and ask before building it.
-
+If you are unsure whether a bug, feature, model idea, dataset, alignment change, self-learning change, or safety change fits the project, open an issue and ask before building it.
