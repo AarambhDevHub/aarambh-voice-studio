@@ -477,10 +477,10 @@ Avoid opening large modelling, alignment, or self-learning PRs without an issue 
 
 ## License
 
-Apache License 2.0. See `LICENSE`.
+Apache License 2.0. See `[LICENSE](./LICENSE)`.
 
 ---
 
 ## Author
 
-Created by **Darshan Vichhi** under **AarambhDevHub**.
+Created by **[Darshan Vichhi](https://github.com/aarambh-darshan)** under **[AarambhDevHub](https://github.com/AarambhDevHub)**.
