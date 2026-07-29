@@ -189,59 +189,67 @@ other crates exist as scaffold modules for later phases.
 
 ### Tasks
 ```
-[ ] Create directory: aarambh-voice-studio/
-[ ] Write root Cargo.toml (copy from above — 23 lib crates + 1 bin)
-[ ] cargo new --lib crates/aarambh-voice-core
-[ ] cargo new --lib crates/aarambh-voice-codec
-[ ] cargo new --lib crates/aarambh-voice-textprep
-[ ] cargo new --lib crates/aarambh-voice-data
-[ ] cargo new --lib crates/aarambh-voice-nn
-[ ] cargo new --lib crates/aarambh-voice-kernel
-[ ] cargo new --lib crates/aarambh-voice-model
-[ ] cargo new --lib crates/aarambh-voice-weights
-[ ] cargo new --lib crates/aarambh-voice-train
-[ ] cargo new --lib crates/aarambh-voice-quant
-[ ] cargo new --lib crates/aarambh-voice-finetune
-[ ] cargo new --lib crates/aarambh-voice-align
-[ ] cargo new --lib crates/aarambh-voice-selflearn
-[ ] cargo new --lib crates/aarambh-voice-speaker
-[ ] cargo new --lib crates/aarambh-voice-emotion
-[ ] cargo new --lib crates/aarambh-voice-music
-[ ] cargo new --lib crates/aarambh-voice-sing
-[ ] cargo new --lib crates/aarambh-voice-mix
-[ ] cargo new --lib crates/aarambh-voice-compose
-[ ] cargo new --lib crates/aarambh-voice-safety
-[ ] cargo new --lib crates/aarambh-voice-eval
-[ ] cargo new --lib crates/aarambh-voice-control
-[ ] cargo new --lib crates/aarambh-voice-inference
-[ ] cargo new --lib crates/aarambh-voice-serve
-[ ] cargo new --bin aarambh-voice-studio
+[x] Create directory: aarambh-voice-studio/
+[x] Write root Cargo.toml (23 lib crates + 1 bin, workspace.dependencies)
+[x] cargo new --lib crates/aarambh-voice-core
+[x] cargo new --lib crates/aarambh-voice-codec
+[x] cargo new --lib crates/aarambh-voice-textprep
+[x] cargo new --lib crates/aarambh-voice-data
+[x] cargo new --lib crates/aarambh-voice-nn
+[x] cargo new --lib crates/aarambh-voice-kernel
+[x] cargo new --lib crates/aarambh-voice-model
+[x] cargo new --lib crates/aarambh-voice-weights
+[x] cargo new --lib crates/aarambh-voice-train
+[x] cargo new --lib crates/aarambh-voice-quant
+[x] cargo new --lib crates/aarambh-voice-finetune
+[x] cargo new --lib crates/aarambh-voice-align
+[x] cargo new --lib crates/aarambh-voice-selflearn
+[x] cargo new --lib crates/aarambh-voice-speaker
+[x] cargo new --lib crates/aarambh-voice-emotion
+[x] cargo new --lib crates/aarambh-voice-music
+[x] cargo new --lib crates/aarambh-voice-sing
+[x] cargo new --lib crates/aarambh-voice-mix
+[x] cargo new --lib crates/aarambh-voice-compose
+[x] cargo new --lib crates/aarambh-voice-safety
+[x] cargo new --lib crates/aarambh-voice-eval
+[x] cargo new --lib crates/aarambh-voice-control
+[x] cargo new --lib crates/aarambh-voice-inference
+[x] cargo new --lib crates/aarambh-voice-serve
+[x] cargo new --bin aarambh-voice-studio
 ```
 
 **Write `aarambh-voice-core` completely:**
 ```
-[ ] src/config.rs
+[x] src/config.rs
       AudioDomain { Speech, Music, Singing }
       ModelConfig { d_model, n_layers, n_heads, n_kv_heads, max_frames,
                     n_codebooks, domain: AudioDomain }
       impl ModelConfig { fn tiny() / small() / medium() / large() -> Self }
-[ ] src/request.rs
+[x] src/request.rs
       NaadRequest, VoiceSpec, EmotionSpec, SingingSpec, MusicSpec, MixSpec,
       AudioOutputFormat, ConsentSpec
       (full fields defined in Phase 18 — stub structs here, fleshed out later)
-[ ] src/error.rs
+[x] src/error.rs
       AarambhVoiceError via thiserror, one variant per crate's failure mode
-[ ] lib.rs re-exports
+[x] lib.rs re-exports
 ```
 
 ### Tests
 ```
-[ ] ModelConfig::tiny() produces expected d_model/n_layers for each AudioDomain
-[ ] Config round-trips through serde_json without loss
+[x] ModelConfig::tiny() produces expected d_model/n_layers for each AudioDomain
+[x] Config round-trips through serde_json without loss
+```
+
+### Additional (Phase 0 extras)
+```
+[x] .gitignore
+[x] .github/ (FUNDING, PR template, issue templates, CI, release workflow)
+[x] full doc-comment coverage (matching continual-learning-poc style)
+[x] CHANGELOG.md
 ```
 
 ### Milestone
-`cargo check --workspace` passes with zero warnings across all 24 crates.
+`cargo check --workspace` passes with zero warnings across all 25 crates.
 Tag: `v0.1.0-phase0`
 
 ---

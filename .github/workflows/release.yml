@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v0.1.0
+
+permissions:
+  contents: write
+  checks: write
+  issues: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Validate and release v0.1.0 source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Verify release tag
+        run: test "${GITHUB_REF_NAME}" = "v0.1.0"
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Check
+        run: cargo check --workspace --all-targets --locked
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings -D clippy::undocumented_unsafe_blocks
+
+      - name: Test
+        run: cargo test --workspace --no-fail-fast --locked
+
+      - name: Documentation
+        run: RUSTDOCFLAGS="-D warnings -D missing_docs" cargo doc --workspace --no-deps --locked
+
+      - name: Build release binary
+        run: cargo build --release -p aarambh-voice-studio --locked
+
+      - name: Verify CLI
+        run: |
+          target/release/aarambh-voice-studio --version
+          target/release/aarambh-voice-studio --help
+
+      - name: Dependency audit
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: aarambh-voice-studio v0.1.0
+          body_path: .github/release-notes/v0.1.0.md
+          generate_release_notes: true
+          make_latest: true

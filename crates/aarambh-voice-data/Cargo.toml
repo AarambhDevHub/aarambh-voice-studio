@@ -1,0 +1,8 @@
+[package]
+name = "aarambh-voice-data"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aarambh-voice-core = { path = "../aarambh-voice-core" }
