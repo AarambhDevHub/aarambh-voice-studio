@@ -477,7 +477,7 @@ Avoid opening large modelling, alignment, or self-learning PRs without an issue 
 
 ## License
 
-Apache License 2.0. See `[LICENSE](./LICENSE)`.
+Apache License 2.0. See [LICENSE](./LICENSE).
 
 ---
 
