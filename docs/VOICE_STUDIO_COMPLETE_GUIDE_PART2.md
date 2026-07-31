@@ -858,9 +858,9 @@ POST /generate
   remains available for anyone who explicitly wants lossless output.
 - *Q: Why is MP3 support "optional" instead of just included?* → MP3
   encoding (via the LAME library) carries its own licensing terms
-  separate from this project's Apache-2.0 license — keeping it behind a
-  feature flag means anyone building the project makes an informed choice
-  about including it, rather than it being silently bundled by default.
+  separate from this project's Apache-2.0 + MIT dual license — keeping it
+  behind a feature flag means anyone building the project makes an informed
+  choice about including it, rather than it being silently bundled by default.
 
 ---
 
