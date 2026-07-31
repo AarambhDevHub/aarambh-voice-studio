@@ -7,7 +7,7 @@
 ![Framework](https://img.shields.io/badge/AI%20Backend-Candle-blue)
 ![Status](https://img.shields.io/badge/Status-Roadmap%20%2F%20Engineering%20Build-yellow)
 ![Release](https://img.shields.io/badge/Release-Source%20Only-lightgrey)
-![License](https://img.shields.io/badge/License-Apache--2.0-blue)
+![License](https://img.shields.io/badge/License-Apache--2.0%20%2F%20MIT-blue)
 ![Crates](https://img.shields.io/badge/Crates-24-informational)
 
 `aarambh-voice-studio` is a from-scratch speech, music, and singing engine written in Rust using Candle. It is designed as a sibling project to [`aarambh-studio`](https://github.com/AarambhDevHub/aarambh-studio), but instead of text tokens only, it builds a shared neural-audio-codec transformer core for audio generation and understanding.
@@ -477,7 +477,7 @@ Avoid opening large modelling, alignment, or self-learning PRs without an issue 
 
 ## License
 
-Apache License 2.0. See [LICENSE](./LICENSE).
+Dual-licensed under the [Apache License 2.0](LICENSE-APACHE) and the [MIT License](LICENSE-MIT).
 
 ---
 
