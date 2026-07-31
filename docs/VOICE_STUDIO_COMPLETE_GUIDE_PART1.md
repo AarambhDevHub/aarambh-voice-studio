@@ -28,7 +28,7 @@ whole project actually is:
 > `aarambh-voice-studio` is a set of models that turn sound into short
 > lists of numbers (tokens), and then predict "what token comes next" —
 > for speech, for music, and for singing — the exact same trick
-> `aarambh-ai` uses for text, applied to audio instead of words.
+> `aarambh-studio` uses for text, applied to audio instead of words.
 
 Here is the full pipeline, zoomed way out, so you can see where every
 phase fits:
@@ -49,7 +49,7 @@ phase fits:
       │
       ▼
 ┌─────────────┐
-│   NEURAL    │  (the shared "brain" - layers of math, same as aarambh-ai)
+│   NEURAL    │  (the shared "brain" - layers of math, same as aarambh-studio)
 │   NETWORK   │
 └─────────────┘
       │
@@ -150,7 +150,7 @@ transformer) meaningfully easier.
 
 **Why we need it:**
 Every later engine — TTS, cloning, music, singing — works by predicting
-"what token comes next," exactly like `aarambh-ai` predicts the next
+"what token comes next," exactly like `aarambh-studio` predicts the next
 word. None of that is possible without a codec that can turn tokens back
 into audio a human can actually listen to.
 
@@ -202,7 +202,7 @@ reconstructed waveform: [0.021, -0.009, 0.048, ...] (very close to original)
 - *Q: What happens if the codec is bad?* → Everything built on top
   inherits that badness — this is why the codec is frozen and never
   touched again once it passes its quality bar (the "freeze criterion"),
-  the same discipline `aarambh-ai` uses for its tokenizer.
+  the same discipline `aarambh-studio` uses for its tokenizer.
 
 ---
 
@@ -367,7 +367,7 @@ steer what gets generated.
 
 **Beginner explanation:**
 The transformer core itself (RMSNorm, RoPE, Grouped-Query Attention,
-SwiGLU) is the exact same kind of machinery `aarambh-ai` uses for text —
+SwiGLU) is the exact same kind of machinery `aarambh-studio` uses for text —
 full explanations of each live in the math guide. What's new here is
 **conditioning injection**: a speaker's identity gets turned into a list
 of 256 numbers (an embedding) and added into the very first layer, so
@@ -483,7 +483,7 @@ This phase wires Phases 1-5 together into one real training loop. Text
 is phonemized (Phase 2), phonemes are fed through the transformer (Phase
 4), which predicts codec tokens (Phase 1) one at a time, and the training
 loss compares predicted tokens against the real ones taken from an actual
-human recording. This is this project's version of `aarambh-ai`'s first
+human recording. This is this project's version of `aarambh-studio`'s first
 "it generates real words" milestone.
 
 **Why we need it:**
@@ -894,7 +894,7 @@ aarambh-voice-studio music generate \
 - *Q: Does this need real music theory knowledge built in?* → No explicit
   music theory rules are hand-coded — the model learns tempo, key, and
   harmony patterns statistically from the auto-labelled training data,
-  the same way `aarambh-ai` learns grammar without being taught explicit
+  the same way `aarambh-studio` learns grammar without being taught explicit
   grammar rules.
 
 ---

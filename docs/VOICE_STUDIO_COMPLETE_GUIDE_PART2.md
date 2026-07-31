@@ -485,7 +485,7 @@ learning.
 Rather than retraining the entire model (expensive, slow, needs huge
 amounts of data), LoRA-family methods add a small number of new,
 trainable parameters alongside the mostly-frozen original model — the
-same trick `aarambh-ai` uses for text fine-tuning, applied here to
+same trick `aarambh-studio` uses for text fine-tuning, applied here to
 voice/style adaptation. QLoRA does the same thing on a quantised (Phase
 20) base model to save even more memory; DoRA is a refinement of LoRA
 that tends to match full fine-tuning quality more closely.
@@ -793,7 +793,7 @@ With speculative decoding: a Tiny "draft" model quickly guesses 4 tokens
   the target model itself. Output is provably identical to not using
   speculative decoding at all — it's purely a speed optimization.
 - *Q: Why train on Kaggle instead of buying more compute?* → Part of this
-  project's philosophy (matching `aarambh-ai`) is proving the whole
+  project's philosophy (matching `aarambh-studio`) is proving the whole
   pipeline works using free, ordinary hardware — an i3 laptop plus
   Kaggle's free GPU tier — rather than assuming access to paid compute.
 

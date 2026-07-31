@@ -8,7 +8,7 @@
 - `ARCHITECTURE_VOICE_STUDIO_PART2.md` — kernels, quantisation, fine-tuning,
   alignment (GRPO/DPO), safety, eval, crate reference, data flow, memory
   estimates, hardware strategy, audio output formats, relationship to
-  `aarambh-ai`, out-of-scope.
+  `aarambh-studio`, out-of-scope.
 - `SELF_LEARNING_VOICE_STUDIO.md` — the self-learning subsystem in full,
   mirroring Manas's associative memory + anti-forgetting design.
 - `ROADMAP_VOICE_STUDIO_PART1.md` / `PART2.md` — step-by-step build plan.
@@ -112,7 +112,7 @@ PyTorch or any Python inference library, no vendored checkpoints.
 
 | Goal | Decision |
 |---|---|
-| Reuse, don't rebuild | Transformer block (RMSNorm, RoPE, GQA, SwiGLU) ported from `aarambh-ai-nn` patterns |
+| Reuse, don't rebuild | Transformer block (RMSNorm, RoPE, GQA, SwiGLU) ported from `aarambh-studio-nn` patterns |
 | Adaptation over from-scratch pretraining | LoRA/QLoRA/DoRA first; from-scratch pretraining is a stretch goal per subsystem |
 | One control surface | Every knob is a typed field on `NaadRequest`, never a hidden preset |
 | Separate-then-mix over joint generation | Vocals and instrumentals generated independently, then mixed — more controllable, more debuggable |
@@ -135,7 +135,7 @@ PyTorch or any Python inference library, no vendored checkpoints.
 
 ```toml
 [workspace.dependencies]
-# Tensor backend — shared major/minor with aarambh-ai
+# Tensor backend — shared major/minor with aarambh-studio
 candle-core         = { version = "0.11" }
 candle-nn           = { version = "0.11" }
 candle-transformers = { version = "0.11" }
@@ -156,7 +156,7 @@ mp3lame-encoder     = "0.2"          # MP3 encoding, feature-gated `mp3` (LGPL/p
 tokenizers          = "0.22"
 deunicode           = "1"            # transliteration fallback for Sanskrit/Hindi text prep
 
-# Shared with aarambh-ai
+# Shared with aarambh-studio
 anyhow              = "1"
 thiserror           = "2"
 serde               = { version = "1", features = ["derive"] }
@@ -248,7 +248,7 @@ all engines, parameterised by `AudioDomain`:
 
 Codec (encoder+decoder, RVQ+transformer bottleneck) is scale-independent
 by design — one codec, ~15–25M params, trained once in Phase 1/Stage 0,
-frozen for all downstream engine training. This mirrors `aarambh-ai`'s
+frozen for all downstream engine training. This mirrors `aarambh-studio`'s
 "tokenizer trained once, frozen thereafter" discipline.
 
 ```rust
@@ -361,7 +361,7 @@ Codec is frozen once, on a held-out set:
 
 Once frozen: tag `v0.1.0-codec-frozen`, and every subsequent phase treats
 `aarambh-voice-codec` as read-only infrastructure — same discipline as
-`aarambh-ai`'s tokenizer freeze.
+`aarambh-studio`'s tokenizer freeze.
 
 ---
 
@@ -369,12 +369,12 @@ Once frozen: tag `v0.1.0-codec-frozen`, and every subsequent phase treats
 
 ### 7.1 Architecture
 
-Ported (not shared as a direct dependency) from `aarambh-ai-nn`:
+Ported (not shared as a direct dependency) from `aarambh-studio-nn`:
 RMSNorm, RoPE positional encoding, Grouped-Query Attention (GQA), SwiGLU
 feed-forward. The port exists because audio conditioning needs injection
 points text generation doesn't — speaker embedding, emotion embedding,
 melody/duration conditioning are all summed or cross-attended into the
-residual stream at specific layers, and coupling that to `aarambh-ai-nn`
+residual stream at specific layers, and coupling that to `aarambh-studio-nn`
 directly would tie audio-model changes to text-model releases.
 
 ### 7.2 Conditioning injection points
@@ -528,4 +528,4 @@ voice — this becomes the (text, target-embedding-region) supervision.
 *Continue to Part 2 for sections 10–20: custom kernels, quantisation,
 fine-tuning, alignment (GRPO/DPO), safety, evaluation, crate-by-crate
 reference, data flow, memory estimates, hardware strategy, audio output
-formats, relationship to `aarambh-ai`, and out-of-scope items.*
+formats, relationship to `aarambh-studio`, and out-of-scope items.*

@@ -342,7 +342,7 @@ predict.
 Every generative engine in this project (TTS, music, singing) generates
 audio by predicting the next token from this codec's vocabulary — nothing
 downstream is possible without it. It's this project's equivalent of
-`aarambh-ai`'s text tokenizer.
+`aarambh-studio`'s text tokenizer.
 
 **Example:**
 ```
@@ -782,7 +782,7 @@ Mixed + LUFS-matched to -14 target: vocal boosted, instrumental
 token conditioned on everything generated so far.
 
 **Beginner explanation:**
-This is the same fundamental approach `aarambh-ai` uses for text — predict
+This is the same fundamental approach `aarambh-studio` uses for text — predict
 the next piece, add it to what's already been generated, then predict the
 next piece after *that*, repeating until done. This project applies the
 exact same idea to audio tokens instead of word tokens.
@@ -952,7 +952,7 @@ faster, and often nearly as effective as full retraining.
 Phase 21's deliberate fine-tuning (for a speaker you'll use extensively)
 and the self-learning mechanism (Phase 23) both build on this family of
 techniques, applied to voice/style adaptation instead of the text tasks
-`aarambh-ai` uses them for.
+`aarambh-studio` uses them for.
 
 **Example:**
 ```
@@ -1565,7 +1565,7 @@ Checklist applied to every new dataset before use:
 **Common beginner questions:**
 - *Q: Does this slow down building the project?* → Somewhat, yes — but
   it's a deliberate tradeoff this project makes consistently, matching
-  the same discipline `aarambh-ai` applies to its own text training data.
+  the same discipline `aarambh-studio` applies to its own text training data.
 - *Q: What happens to data that turns out to have been used
   inappropriately?* → It should be removed and any models trained
   significantly on it reconsidered — this is exactly why documenting

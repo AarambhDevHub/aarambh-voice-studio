@@ -63,7 +63,7 @@ represent one second of sound.
 **Why we use it:** Every single phase in this project — the codec,
 attention, training losses — ultimately operates on this list of numbers
 or something derived from it. It's the audio equivalent of raw text
-before tokenization in `aarambh-ai`.
+before tokenization in `aarambh-studio`.
 
 **Example 1 (a very short waveform):**
 ```
@@ -459,7 +459,7 @@ textbook that was written independently.
 
 ---
 
-## 8. Scaled Dot-Product Attention (shared with aarambh-ai)
+## 8. Scaled Dot-Product Attention (shared with aarambh-studio)
 
 **Definition:** The mechanism that lets the model decide, for every
 token, which other tokens in the sequence matter most for predicting what
@@ -473,7 +473,7 @@ Say it as: "compare every query against every key with a dot product,
 scale it down, turn the results into probabilities with softmax, then use
 those probabilities to blend together the values."
 
-**Why we use it:** Identical mechanism to `aarambh-ai`'s text attention,
+**Why we use it:** Identical mechanism to `aarambh-studio`'s text attention,
 applied here to codec-token sequences instead of word tokens — it's what
 lets the model know, when generating audio token #200, which of the
 previous 199 tokens (and any conditioning like a speaker embedding) are
@@ -513,7 +513,7 @@ raw comparisons into a "mostly focus here, a little bit there" blend.
 scaling, dot products of long vectors tend to get very large, which
 pushes softmax toward extremely sharp, nearly all-or-nothing outputs —
 dividing by √d_k keeps the scores in a more reasonable range so training
-stays stable. Full derivation in `aarambh-ai-math-formulas-guide.md` §4.
+stays stable. Full derivation in `aarambh-studio-math-formulas-guide.md` §4.
 
 ---
 
@@ -522,7 +522,7 @@ stays stable. Full derivation in `aarambh-ai-math-formulas-guide.md` §4.
 **RoPE (Rotary Position Embedding)** rotates each query/key vector by an
 angle depending on its position in the sequence, so attention naturally
 "knows" how far apart two tokens are without a separate learned position
-embedding. Identical formula to `aarambh-ai`'s RoPE — see that guide's
+embedding. Identical formula to `aarambh-studio`'s RoPE — see that guide's
 full rotation-matrix derivation. Applied here to codec token positions
 (time steps in the audio) instead of word positions.
 

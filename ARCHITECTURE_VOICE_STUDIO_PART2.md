@@ -24,7 +24,7 @@
 27. [Memory & Compute Estimates](#27-memory--compute-estimates)
 28. [Hardware Strategy](#28-hardware-strategy)
 29. [Audio Output Formats](#29-audio-output-formats)
-30. [Relationship to `aarambh-ai`](#30-relationship-to-aarambh-ai)
+30. [Relationship to `aarambh-studio`](#30-relationship-to-aarambh-studio)
 31. [What's Explicitly Out of Scope (v1)](#31-whats-explicitly-out-of-scope-v1)
 
 ---
@@ -280,7 +280,7 @@ pub struct NaadRequest {
 
 ### 17.1 KV cache
 Standard causal KV cache, per-request, held in `aarambh-voice-inference`;
-freed on request completion. Same discipline as `aarambh-ai`'s inference
+freed on request completion. Same discipline as `aarambh-studio`'s inference
 runtime.
 
 ### 17.2 Streaming
@@ -292,7 +292,7 @@ are generated, rather than waiting for the full sequence.
 A small draft model (Tiny-scale checkpoint of the same architecture)
 proposes several codec tokens ahead; the target model (Small/Medium/Large)
 verifies them in a single forward pass, accepting the longest matching
-prefix. Same mechanism planned for `aarambh-ai` v2 — implementing it here
+prefix. Same mechanism planned for `aarambh-studio` v2 — implementing it here
 in v1 instead of deferring, since CPU inference latency matters more for
 audio (users notice audio latency more acutely than text-generation
 latency) and the draft-model infrastructure is nearly free once Tiny
@@ -309,7 +309,7 @@ simultaneously — budget this into the CPU inference memory table (§27).
 ## 18. Custom Kernels (`aarambh-voice-kernel`)
 
 - CPU SIMD kernels for the transformer core's hot paths (attention,
-  RMSNorm), matching `aarambh-ai-kernel`'s approach.
+  RMSNorm), matching `aarambh-studio-kernel`'s approach.
 - Fused STFT kernel — STFT/mel computation is on the critical path for
   both the codec and the music-understanding encoder, worth hand-fusing
   rather than relying on generic `rustfft` call patterns.
@@ -323,7 +323,7 @@ simultaneously — budget this into the CPU inference memory table (§27).
 
 INT8 / INT4 (GPTQ/AWQ-style) / GGUF-style export, plus an optional
 quantisation-aware-training (QAT) pass — post-hoc quantisation is the
-default path (matches `aarambh-ai` v1 discipline), QAT is available for
+default path (matches `aarambh-studio` v1 discipline), QAT is available for
 whichever checkpoint benefits most once post-hoc quality is measured
 against the tolerance budget in the eval harness (§24).
 
@@ -593,7 +593,7 @@ speculative decoding into v1 (§17.3) is worth the added complexity.
 | Medium | P100 16 GB | BF16 | 4  | Music Engine generation (heaviest phase), GRPO alignment |
 | Large  | A100 40 GB | BF16 | 2  | Stretch goal, hardware-dependent |
 
-Same opt-in `--features cuda` pattern as `aarambh-ai`: CPU builds remain
+Same opt-in `--features cuda` pattern as `aarambh-studio`: CPU builds remain
 default.
 
 ### Which phases actually need Kaggle
@@ -631,14 +631,14 @@ Server default: chunked Opus over HTTP for `/generate`, with a
 
 ---
 
-## 30. Relationship to `aarambh-ai`
+## 30. Relationship to `aarambh-studio`
 
 Unchanged from the draft — sibling project, not a fork:
 - Transformer block ported, not shared as a direct dependency (§7.1).
 - Training, fine-tuning, quantisation, alignment, and safety-layer
-  discipline are directly modelled on `aarambh-ai`'s equivalent crates —
+  discipline are directly modelled on `aarambh-studio`'s equivalent crates —
   including the alignment crate, which follows the same GRPO recipe
-  `aarambh-ai` v2.0 is separately planning, and the self-learning crate,
+  `aarambh-studio` v2.0 is separately planning, and the self-learning crate,
   which follows Manas's anti-forgetting design directly.
 - Joint text+audio multimodal model remains out of scope for v1 (§31) —
   the two projects share *patterns*, not a runtime.
@@ -652,7 +652,7 @@ Unchanged from the draft — sibling project, not a fork:
   SSM-style linear-time architectures. Revisit only if conversational
   latency becomes an explicit goal — see the SSM note in the design
   rationale.
-- Joint text+audio multimodal model combining `aarambh-ai` and
+- Joint text+audio multimodal model combining `aarambh-studio` and
   `aarambh-voice-studio` into one transformer.
 - Video or lip-sync generation.
 - From-scratch pretraining of the Music Engine as the default path —

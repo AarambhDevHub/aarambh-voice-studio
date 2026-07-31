@@ -1,6 +1,6 @@
 # ROADMAP_VOICE_STUDIO.md — Part 1 of 2 — aarambh-voice-studio
 
-> Final v1 step-by-step build plan, same format as `aarambh-ai`'s roadmap:
+> Final v1 step-by-step build plan, same format as `aarambh-studio`'s roadmap:
 > every phase ends with working, testable code, a git tag, and a clear
 > milestone command. Read alongside ARCHITECTURE_VOICE_STUDIO_PART1/2.md
 > and SELF_LEARNING_VOICE_STUDIO.md before starting Phase 0.
@@ -411,7 +411,7 @@ three domains (speech, music, singing). Tag: `v0.1.0-phase3`
 **Duration:** 5–7 days | **Hardware:** i3
 
 ### Goal
-The shared transformer core (ported from `aarambh-ai-nn` patterns) with
+The shared transformer core (ported from `aarambh-studio-nn` patterns) with
 all conditioning injection points wired: speaker embedding, emotion
 embedding, melody/duration — see ARCHITECTURE_VOICE_STUDIO_PART1.md §7.
 
